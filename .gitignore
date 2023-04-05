@@ -2,6 +2,7 @@
 .terraform.lock.hcl
 terraform.tfstate.backup
 terraform.tfstate
+.terraform.tfstate.lock.info
 .DS_Store
 AM-SetAudience.xml
 .terraform

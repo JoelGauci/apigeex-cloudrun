@@ -29,36 +29,9 @@ SCRIPTPATH="$( cd "$(dirname "$0")" || exit >/dev/null 2>&1 ; pwd -P )"
 [ -z "$APIGEE_X_HOSTNAME" ] && printf "Apigee X Hostname: "    && read -r APIGEE_X_HOSTNAME
 
 ###
-### destroy_artifact_registry()
-###
-destroy_artifact_registry() {
-
-  cd ${SCRIPTPATH}/terraform/artifact-registry
-
-  terraform init
-  terraform init
-    terraform destroy --var-file="./input.tfvars" \
-      -auto-approve
-}
-
-###
 ### destroy_common_gcp_resources()
 ###
 destroy_common_gcp_resources() {
-
-  cd ${SCRIPTPATH}/terraform/common
-
-  terraform init
-  terraform destroy --var-file="./input.tfvars" \
-    -auto-approve
-}
-
-###
-### destroy_dns_resources()
-###
-destroy_dns_resources() {
-
-  cd ${SCRIPTPATH}/terraform/dns
 
   terraform init
   terraform destroy --var-file="./input.tfvars" \
@@ -70,9 +43,8 @@ destroy_dns_resources() {
 ### destroy_common_gcp_resources()
 ###
 main() {
-  destroy_dns_resources
+  cd ${SCRIPTPATH}
   destroy_common_gcp_resources
-  destroy_artifact_registry
 }
 
 main "${@}"

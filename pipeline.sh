@@ -28,66 +28,27 @@ SCRIPTPATH="$( cd "$(dirname "$0")" || exit >/dev/null 2>&1 ; pwd -P )"
 [ -z "$APIGEE_X_HOSTNAME" ] && printf "Apigee X Hostname: "    && read -r APIGEE_X_HOSTNAME
 
 ###
-### create_artifact_registry()
-###
-create_artifact_registry() {
-
-cd ${SCRIPTPATH}/terraform/artifact-registry
-
-terraform init
-terraform apply -var "gcp_project_id=${GCP_PROJECT_ID}" \
-      -var "gcp_region=${GCP_REGION}" \
-      -var "gcp_zone=${GCP_ZONE}" \
-      -var "repository_id=${REPOSITORY_ID}" \
-      -auto-approve
-}
-
-###
-### create_push_app_images()
-###
-create_push_app_images() {
-
-  cd ${SCRIPTPATH}/services/${1}
-  gcloud builds submit --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REPOSITORY_ID}/${1}
-
-  cd ${SCRIPTPATH}/services/${2}
-  gcloud builds submit --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REPOSITORY_ID}/${2}
-
-  cd ${SCRIPTPATH}/services/${3}
-  gcloud builds submit --tag ${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${REPOSITORY_ID}/${3}
-
-}
-
-###
 ### create_common_gcp_resources()
 ###
 create_common_gcp_resources() {
 
-  cd ${SCRIPTPATH}/terraform/common
-
   terraform init
+
+  terraform plan -var "gcp_project_id=${GCP_PROJECT_ID}" \
+        -var "gcp_region=${GCP_REGION}" \
+        -var "gcp_zone=${GCP_ZONE}" \
+        -var "repository_id=${REPOSITORY_ID}" \
+        -var "consumer_vpc=${CONSUMER_NETWORK}" \
+        -var "url_mask=${1}" \
+        -var "apigee_endpoint_attachment=${2}"
+
   terraform apply -var "gcp_project_id=${GCP_PROJECT_ID}" \
         -var "gcp_region=${GCP_REGION}" \
         -var "gcp_zone=${GCP_ZONE}" \
         -var "repository_id=${REPOSITORY_ID}" \
+        -var "consumer_vpc=${CONSUMER_NETWORK}" \
         -var "url_mask=${1}" \
         -var "apigee_endpoint_attachment=${2}" \
-        -auto-approve
-}
-
-###
-### create_dns_resources()
-###
-create_dns_resources() {
-
-  cd ${SCRIPTPATH}/terraform/dns
-
-  terraform init
-  terraform apply -var "gcp_project_id=${GCP_PROJECT_ID}" \
-        -var "gcp_region=${GCP_REGION}" \
-        -var "gcp_zone=${GCP_ZONE}" \
-        -var "consumer_vpc=${CONSUMER_NETWORK}" \
-        -var "endpoint_attachment_ipaddress=${1}" \
         -auto-approve
 }
 
@@ -96,17 +57,12 @@ create_dns_resources() {
 ### create_common_gcp_resources()
 ###
 main() {
-  create_artifact_registry
-  create_push_app_images "login" "search" "translate"
+  cd "$SCRIPTPATH";
+  
   create_common_gcp_resources "/<service>" "pscendpoint"
   # Cloud Run app url
   APP_URL=$(terraform output -json service_urls | jq -r '.[0]')
-  # psc endpoint host on apigee
-  INSTANCE_ENDPOINT_HOST=$(terraform output -raw instance_endpoint_host)
-  create_dns_resources ${INSTANCE_ENDPOINT_HOST}
-
-  cd "$SCRIPTPATH";
-
+  
   # dynamic set of the audience
   CLOUDRUN_APP_SUFFIX=$(echo "${APP_URL}" | sed "s/https:\/\/login//")
   export CLOUDRUN_APP_SUFFIX
