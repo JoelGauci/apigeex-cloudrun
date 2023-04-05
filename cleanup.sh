@@ -20,13 +20,6 @@ SCRIPTPATH="$( cd "$(dirname "$0")" || exit >/dev/null 2>&1 ; pwd -P )"
 # Ask for input parameters if they are not set
 
 [ -z "$GCP_PROJECT_ID" ]     && printf "GCP project id: "    && read -r GCP_PROJECT_ID
-[ -z "$GCP_REGION" ]   && printf "GCP region: " && read -r GCP_REGION
-[ -z "$GCP_ZONE" ]     && printf "GCP zone: "  && read -r GCP_ZONE
-[ -z "$REPOSITORY_ID" ] && printf "Repository id: "    && read -r REPOSITORY_ID
-[ -z "$CONSUMER_NETWORK" ] && printf "Consumer VPC: "    && read -r CONSUMER_NETWORK
-[ -z "$APIGEE_X_ORG" ] && printf "Apigee X Organization: "    && read -r APIGEE_X_ORG
-[ -z "$APIGEE_X_ENV" ] && printf "Apigee X Environment: "    && read -r APIGEE_X_ENV
-[ -z "$APIGEE_X_HOSTNAME" ] && printf "Apigee X Hostname: "    && read -r APIGEE_X_HOSTNAME
 
 ###
 ### destroy_common_gcp_resources()
@@ -35,6 +28,7 @@ destroy_common_gcp_resources() {
 
   terraform init
   terraform destroy --var-file="./input.tfvars" \
+    -var "gcp_project_id=${GCP_PROJECT_ID}"
     -auto-approve
 }
 
