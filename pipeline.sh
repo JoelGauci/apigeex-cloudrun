@@ -44,9 +44,8 @@ create_common_gcp_resources() {
 ### create_common_gcp_resources()
 ###
 main() {
-  cd "$SCRIPTPATH";
-  
-  create_common_gcp_resources "/<service>" "pscendpoint"
+  cd "$SCRIPTPATH"
+  create_common_gcp_resources
   # Cloud Run app url
   APP_URL=$(terraform output -json service_urls | jq -r '.[0]')
   
